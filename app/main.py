@@ -21,8 +21,15 @@ def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
     
+    # 1. Generate the hash exactly ONCE
     hashed_pwd = auth.get_password_hash(user_in.password)
-    new_user = models.User(username=user_in.username, hashed_password=hashed_pwd, salary=user_in.salary)
+    
+    # 2. Pass the single hash directly to the database column mapping
+    new_user = models.User(
+        username=user_in.username, 
+        hashed_password=hashed_pwd, 
+        salary=user_in.salary
+    )
     db.add(new_user)
     db.commit()
     
